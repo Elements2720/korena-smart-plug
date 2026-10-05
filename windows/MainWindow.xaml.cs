@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -22,11 +23,12 @@ public sealed class Preferences {
     public double Left { get; set; } = 100;
     public double Top { get; set; } = 100;
     public double Width { get; set; } = 340;
-    public double Height { get; set; } = 310;
+    public double Height { get; set; } = 400;
     public bool Pinned { get; set; }
     public bool Startup { get; set; }
 }
-public sealed record Outlet(int Number, bool? On, [property: JsonPropertyName("power_w")] double? Power);
+public sealed record Outlet(int Number, bool? On, [property: JsonPropertyName("power_w")] double? Power,
+    [property: JsonPropertyName("temperature_c")] double? Temperature);
 public sealed record Device(string Id, bool Ready, bool Busy, List<Outlet> Outlets, [property: JsonPropertyName("power_w")] double? Power);
 public sealed record Snapshot(List<Device> Devices);
 
@@ -46,11 +48,12 @@ public partial class MainWindow : Window {
         InitializeComponent();
         LoadPreferences();
         Left = preferences.Left; Top = preferences.Top;
-        Width = Math.Clamp(preferences.Width, 310, 900); Height = Math.Clamp(preferences.Height, 290, 900);
+        Width = Math.Clamp(preferences.Width, 310, 900); Height = Math.Clamp(preferences.Height, 390, 900);
         Pin.IsChecked = preferences.Pinned;
         for (int number = 1; number <= 4; number++) {
             int channel = number;
-            var button = new Button { Margin = new Thickness(4), FontSize = 16, IsEnabled = false, Content = $"Outlet {number}\nUnknown" };
+            var button = new Button { Margin = new Thickness(4), FontSize = 16, IsEnabled = false,
+                Content = new TextBlock { Text = $"Outlet {number}\nUnknown\n— W\n— °C", TextAlignment = TextAlignment.Center } };
             button.Click += async (_, _) => await SetPower(channel);
             buttons.Add(button); Outlets.Children.Add(button);
         }
@@ -92,10 +95,15 @@ public partial class MainWindow : Window {
     private void Disable() { foreach (var button in buttons) button.IsEnabled = false; }
     private void Render() {
         Status.Text = device is null ? "No strip connected" : !device.Ready ? "Strip offline or readings stale" : commandNotice ?? "Connected · confirmed readings";
-        Power.Text = device?.Power is double watts ? $"{watts:0.#} W" : "— W";
+        Power.Text = device?.Ready == true && device.Power is double watts ? $"Total {watts:0.#} W" : "Total — W";
         foreach (var button in buttons.Select((button, index) => (button, index))) {
             var outlet = device?.Outlets.FirstOrDefault(o => o.Number == button.index + 1);
-            button.button.Content = $"Outlet {button.index + 1}\n{(outlet?.On is null ? "Unknown" : outlet.On.Value ? "On" : "Off")}";
+            var state = outlet?.On is null ? "Unknown" : outlet.On.Value ? "On" : "Off";
+            var power = device?.Ready == true && outlet?.Power is double powerWatts ? $"{powerWatts:0.#} W" : "— W";
+            var temperature = device?.Ready == true && outlet?.Temperature is double degrees ? $"{degrees:0.#} °C" : "— °C";
+            ((TextBlock)button.button.Content).Text = $"Outlet {button.index + 1}\n{state}\n{power}\n{temperature}";
+            System.Windows.Automation.AutomationProperties.SetName(button.button,
+                $"Outlet {button.index + 1}, {state}, power {power}, temperature {temperature}");
             button.button.Background = new SolidColorBrush(outlet?.On == true ? Color.FromRgb(233,244,238) : Colors.White);
             button.button.IsEnabled = !pending && device?.Ready == true && !device.Busy && outlet?.On is not null;
         }
@@ -106,7 +114,11 @@ public partial class MainWindow : Window {
         if (outlet.On is null) return;
         pending = true; commandNotice = null; Disable(); Status.Text = $"Outlet {channel} · waiting for confirmation…";
         try {
-            using var response = await http.PostAsJsonAsync(preferences.Server + "/api/power", new { device_id = device.Id, outlet = channel, on = !outlet.On.Value });
+            // Buffer JSON so HttpClient sends Content-Length; the controller rejects chunked bodies.
+            using var content = new StringContent(JsonSerializer.Serialize(new {
+                device_id = device.Id, outlet = channel, on = !outlet.On.Value
+            }), Encoding.UTF8, "application/json");
+            using var response = await http.PostAsync(preferences.Server + "/api/power", content);
             using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             commandNotice = response.IsSuccessStatusCode ? $"Outlet {channel} · confirmed" : body.RootElement.GetProperty("error").GetString();
         } catch (Exception e) when (e is HttpRequestException or TaskCanceledException or JsonException or KeyNotFoundException) {
