@@ -1,0 +1,16 @@
+[Unit]
+Description=MTTL-W01 home-network browser controller
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Replace these values before installing the service.
+User=YOUR_LINUX_USERNAME
+WorkingDirectory=/home/YOUR_LINUX_USERNAME/korena-smart-plug
+ExecStart=/usr/bin/python3 /home/YOUR_LINUX_USERNAME/korena-smart-plug/server.py --server-ip 192.168.1.220
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

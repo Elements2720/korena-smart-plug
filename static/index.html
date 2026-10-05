@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eef2f4">
+  <title>Home Strip</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Home Strip home">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3v5m8-5v5M6 8h12v4a6 6 0 0 1-12 0V8Zm6 10v3"/></svg>
+      Home Strip
+    </a>
+    <span class="network-label">Your home network</span>
+  </header>
+  <main>
+    <div class="intro"><h1>A little more control.</h1><p>Your four outlets, right here.</p></div>
+    <p id="server-error" class="notice error" role="alert" hidden></p>
+    <p id="command-message" class="notice" role="status" hidden></p>
+    <section id="devices" aria-label="Connected power strips"></section>
+    <section id="empty" class="setup-panel" aria-labelledby="setup-title">
+      <div class="setup-heading">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8a16 16 0 0 1 20 0M5 12a11 11 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1"/></svg>
+        <div><h2 id="setup-title">Let's connect your strip.</h2><p id="empty-status">Checking the server…</p></div>
+      </div>
+      <p>The Linux server stays on your home network. Use your Windows PC's Wi-Fi for this one-time setup.</p>
+      <ol class="setup-steps">
+        <li><h3>Get the setup tool</h3><p>Download it before switching networks. You'll need Python 3.9 or newer on the PC.</p><a class="button secondary" href="/provision.py" download="provision.py">Download provision.py</a></li>
+        <li><h3>Join the strip's Wi-Fi</h3><p>Hold the main button for about 10 seconds until its LED flashes quickly. Join <code>TONLY_TAP_935CA80</code>, using <code>LGU_935CA80</code> as the reported password. No internet is expected.</p></li>
+        <li><h3>Give it your home connection</h3><p>In PowerShell, open the folder containing the download and run:</p><pre><code id="pair-command">py .\provision.py --server-ip &lt;LINUX-SERVER-IP&gt;</code></pre><p>The tool asks for your 2.4 GHz Wi-Fi name and password locally. Use the Linux server's address, not the Windows PC's.</p></li>
+        <li><h3>Come back home</h3><p>Reconnect the PC to your normal network and return to this page. The controls appear automatically when the strip reports its state.</p></li>
+      </ol>
+    </section>
+    <details id="setup-help" class="help" hidden><summary>Pairing another strip or reconnecting?</summary><p>Hold its main button for about 10 seconds, connect to its setup Wi-Fi, and run the setup tool again with this Linux server's address. <a href="/provision.py" download="provision.py">Download the tool</a>.</p><pre><code id="help-command"></code></pre></details>
+    <footer><span id="server-address">Connecting to server…</span><span>Local control · MTTL-W01</span></footer>
+    <noscript><p class="notice error">Enable JavaScript to see outlet states and send commands.</p></noscript>
+  </main>
+  <template id="device-template">
+    <article class="strip-panel">
+      <header class="strip-heading">
+        <div><h2 class="device-title"></h2><p class="device-subtitle"></p></div>
+        <span class="status-badge"><span class="status-dot" aria-hidden="true"></span><span class="status-text"></span></span>
+      </header>
+      <div class="controls-heading"><p class="state-note"></p><div class="all-controls"><button class="button secondary all-on" type="button">All on</button><button class="button secondary all-off" type="button">All off</button></div></div>
+      <div class="outlet-grid"></div>
+      <dl class="telemetry">
+        <div><dt>Total power</dt><dd class="total-power"></dd></div>
+        <div><dt>Reported energy</dt><dd class="total-energy"></dd></div>
+        <div><dt>Voltage</dt><dd class="voltage"></dd></div>
+        <div><dt>Wi-Fi signal</dt><dd class="signal"></dd></div>
+      </dl>
+      <details class="device-details"><summary>Connection details</summary><dl><div><dt>Device address</dt><dd class="device-ip"></dd></div><div><dt>Firmware</dt><dd class="firmware"></dd></div><div><dt>Device ID</dt><dd class="device-id"></dd></div></dl></details>
+    </article>
+  </template>
+  <template id="outlet-template">
+    <div class="outlet">
+      <div class="outlet-top"><h3 class="outlet-name"></h3><span class="outlet-state"></span></div>
+      <svg class="socket" viewBox="0 0 100 100" aria-hidden="true"><rect x="8" y="8" width="84" height="84" rx="22"/><circle cx="50" cy="50" r="29"/><path d="M50 21v7m0 44v7"/><circle class="socket-hole" cx="38" cy="50" r="4"/><circle class="socket-hole" cx="62" cy="50" r="4"/></svg>
+      <p class="outlet-reading"></p>
+      <button class="power-button" type="button" role="switch" aria-checked="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v10m-5-7a9 9 0 1 0 10 0"/></svg><span class="button-label"></span><span class="switch-track" aria-hidden="true"></span></button>
+    </div>
+  </template>
+</body>
+</html>

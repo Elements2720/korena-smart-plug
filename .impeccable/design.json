@@ -1,0 +1,24 @@
+{
+  "source": "static/style.css",
+  "tokens": {
+    "--canvas": "#eef2f4",
+    "--surface": "#ffffff",
+    "--surface-muted": "#f5f7f8",
+    "--ink": "#182d38",
+    "--muted": "#526570",
+    "--line": "#d4dfe4",
+    "--control-line": "#7e929b",
+    "--active": "#11664c",
+    "--active-soft": "#e9f4ee",
+    "--warning": "#805109",
+    "--warning-soft": "#fff4df",
+    "--error": "#9d302c",
+    "--error-soft": "#fcedeb",
+    "--radius": "20px",
+    "--motion": "180ms"
+  },
+  "focus": "3px solid var(--active), 4px offset",
+  "shadow": "0 10px 32px -24px #182d3833",
+  "breakpoints": { "twoColumns": "880px", "stacked": "580px" },
+  "motion": "Confirmed switch-thumb movement over 180ms; disabled under prefers-reduced-motion"
+}
