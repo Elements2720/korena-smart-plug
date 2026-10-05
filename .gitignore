@@ -8,3 +8,5 @@ android/local.properties
 *.jks
 *.keystore
 android/release-signing.properties
+windows/bin/
+windows/obj/
