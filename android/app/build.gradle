@@ -1,0 +1,27 @@
+plugins { id 'com.android.application' }
+def signingFile = file(System.getenv('HOME_STRIP_SIGNING_PROPERTIES') ?: 'release-signing.properties')
+def signingProperties = new Properties()
+if (signingFile.exists()) signingFile.withInputStream { signingProperties.load(it) }
+android {
+    namespace 'com.homestrip.app'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'com.homestrip.app'
+        minSdk 29
+        targetSdk 36
+        versionCode 1
+        versionName '1.0'
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    signingConfigs {
+        release {
+            if (signingFile.exists()) {
+                storeFile file(signingProperties['storeFile'])
+                storePassword signingProperties['storePassword']
+                keyAlias signingProperties['keyAlias']
+                keyPassword signingProperties['keyPassword']
+            }
+        }
+    }
+    buildTypes { release { signingConfig signingConfigs.release } }
+}

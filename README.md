@@ -1,5 +1,9 @@
 # Home Strip
 
+## Android pairing app
+
+The [Android companion](android/README.md) bundles pairing without Python on the phone. Supports Android 10+; physical pairing has been verified on an S21 FE running Android 16. The Linux controller is still required for outlet control.
+
 A home-network browser controller for the LG U+ / TONLY MTTL-W01 power strip. Runs on a Linux server with Python 3.9+ and no third-party runtime packages.
 
 Controls: four outlet switches, all on/off, confirmed states, connection status, and power, energy, temperature, voltage, and Wi-Fi readings when the firmware supplies them. Energy is the device's reported counter, not a daily total. No history is stored.
